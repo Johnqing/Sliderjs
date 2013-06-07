@@ -19,6 +19,7 @@
         this.UlWidth = 100;
         this.index = 0;
         this.timer = null;
+        
 		this.el = {
 			ul: target.children('ul'),
 			li: target.children('ul').children('li')
