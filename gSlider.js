@@ -57,12 +57,12 @@
                         if(isMove) return;
                         if(numView==i) return;
                         rollFunc(arrPos[i]);
-                        $navBtns.eq(numView).removeClass('navOn');
+                        $navBtns.eq(numView).removeClass(opts.currClass);
                         numView = i;
-                        $(this).addClass('navOn');
+                        $(this).addClass(opts.currClass);
                     });
                 });
-                $navBtns.eq(numView).addClass('navOn');
+                $navBtns.eq(numView).addClass(opts.currClass);
             }
 
             //设定初始位置
@@ -113,7 +113,7 @@
                 if(opts.btnGo){
                     $.each(opts.btnGo, function(i,val){
                         $(val).bind(opts.eventGo,function(){
-                            if(isMove == true) return;
+                            //if(isMove == true) return;
                             opts.direction = i;
                             rollFunc();
                             if (opts.isAuto) {
@@ -226,7 +226,7 @@
             function start(){
                 rollId = setInterval(function(){
                     rollFunc();
-                }, opts.time*1000);
+                }, opts.time);
             }
             function stop(){
                 clearInterval(rollId);
@@ -250,7 +250,8 @@
         eventA:'mousedown',//鼠标事件，加速
         eventB:'mouseup',//鼠标事件，原速
         isAuto:true,//是否自动轮换
-        time:5,//停顿时间，单位为秒
+        time:5000,//停顿时间，单位为秒
+        currClass: 'navOn',
         duration:50,//缓动效果，单次移动时间，越小速度越快，为0时无缓动效果
         eventGo:'click', //鼠标事件，向前向后走
         direction: 'left',//滚动方向，'left','right','up','down'

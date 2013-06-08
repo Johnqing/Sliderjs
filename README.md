@@ -20,7 +20,8 @@ gSlider
 **options**
 *		distance:200,//一次滚动的距离
 *		duration:20,//缓动效果，单次移动时间，越小速度越快，为0时无缓动效果
-*		time:5,//停顿时间，单位为秒
+*       currClass:'navOn'//当前导航容器样式
+*		time:5000,//停顿时间，单位为毫秒
 *		direction: 'left',//滚动方向，'left','right','up','down'
 *		scrollAmount:1,//步长
 *		scrollDelay:20//时长，单位为毫秒
