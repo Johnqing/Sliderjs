@@ -86,10 +86,10 @@
                 clearInterval(self.timer);
             },function() {
                 self.timer = setInterval(function() {
-                    if(self.index == self.len) { //如果索引值等于li元素个数，说明最后一张图播放完毕，接下来要显示第一张图，即调用showFirPic()，然后将索引值清零
+                    if(self.index == self.len) { 
                         self.moveFirst();
                         self.index = 0;
-                    } else { //如果索引值不等于li元素个数，按普通状态切换，调用showPics()
+                    } else { 
                         self.move(self.index);
                     }
                     self.index++;
