@@ -1,21 +1,124 @@
 <!doctype html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title>Document</title>
-	<link rel="stylesheet" href="gSlider.css">
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="gSlider.css">
+
+    <script type="text/javascript" src="http://js.gome.com.cn/js/g/jquery/jqueryM.js"></script>
+    <script type="text/javascript" src="gSlider.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            //一次横向滚动一个
+            $('#marquee1').gSlider({
+                distance:162,
+                time:3,
+                btnGo:{left:'#goL',right:'#goR'},
+                direction:'left'
+            });
+
+            //一次纵向滚动一个
+            $('#marquee2').gSlider({
+                distance:162,
+                time:3,
+                btnGo:{up:'#goU',down:'#goD'},
+                direction:'down'
+            });
+            //一次滚动一屏
+            $('#marquee3').gSlider({
+                distance:620,
+                time:4,
+                navId:'#mar3Nav',
+                direction:'left'
+            });
+
+            //一次滚动一屏，不自动滚动，点击滚动，可作为导航
+            $('#marquee4').gSlider({
+                isAuto:false,
+                distance:324,
+                btnGo:{left:'#goL2',right:'#goR2'},
+                direction:'left'
+            });
+            //一次滚动一屏
+            $('#marquee5').gSlider({
+                isEqual:false,
+                distance:100,
+                time:4,
+                direction:'up'
+            });
+            //Marquee
+            $('#marquee6').gSlider({
+                isMarquee:true,
+                isEqual:false,
+                scrollDelay:20,
+                controlBtn:{up:'#goUM',down:'#goDM'},
+                direction:'up'
+            });
+
+
+        });
+
+    </script>
 </head>
+
 <body>
-	<div id="focus">
-		<ul>
-			<li>1</li>
-			<li>2</li>
-			<li>3</li>
-			<li>4</li>
-			<li>5</li>
-		</ul>
-	</div>
-    <div id="f2">
+
+<div class="demopage">
+
+    <h2>一次横向滚动一个</h2>
+    <div id="marquee1">
+        <ul>
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+            <li>5</li>
+        </ul>
+    </div>
+    <div class="control">↓鼠标点击：<a href="javascript:void(0);" id="goL">左移一次</a> <a href="javascript:void(0);" id="goR">右移一次</a></div>
+
+
+    <h2>一次纵向滚动一个</h2>
+    <div id="marquee2">
+        <ul>
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+            <li>5</li>
+        </ul>
+    </div>
+    <div class="control">↓鼠标点击：<a href="javascript:void(0);" id="goU">上移一次</a> <a href="javascript:void(0);" id="goD">下移一次</a></div>
+
+
+    <h2>一次滚动一屏</h2>
+    <div class="marqueebox">
+        <div id="marquee3">
+            <ul>
+                <li>1</li>
+                <li>2</li>
+                <li>3</li>
+                <li>4</li>
+                <li>5</li>
+            </ul>
+        </div>
+        <div id="mar3Nav"></div>
+    </div><!--marqueebox end-->
+
+
+    <h2>默认不动</h2>
+    <div id="marquee4">
+        <ul>
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+            <li>5</li>
+        </ul>
+    </div>
+    <div class="control">↑鼠标点击：<a href="javascript:void(0);" id="goL2">左移一屏</a> <a href="javascript:void(0);" id="goR2">右移一屏</a></div>
+    <h2>间隙上下文字自动滚动 支持左右自动滚动</h2>
+    <div id="marquee5">
         <ul>
             <li>1</li>
             <li>2</li>
@@ -29,11 +132,25 @@
             <li>10</li>
         </ul>
     </div>
-<script type=text/javascript src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.0/jquery.min.js"></script>
-<script src="gSlider.js"></script>
-<script>
-	$('#focus').gSlider();
-    $('#f2').gSlider();
-</script>
+
+    <h2>无缝上下文字滚动 支持左右无缝滚动</h2>
+    <div id="marquee6">
+        <ul>
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+            <li>5</li>
+            <li>6</li>
+            <li>7</li>
+            <li>8</li>
+            <li>9</li>
+            <li>10</li>
+        </ul>
+    </div>
+    <div class="control">↑鼠标按住：<a href="javascript:void(0);" id="goUM">加速上移</a> <a href="javascript:void(0);" id="goDM">加速下移</a></div>
+
+</div>
+
 </body>
 </html>
