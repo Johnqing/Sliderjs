@@ -23,5 +23,5 @@ gSlider
  *		newAmount:4,//加速滚动的步长
  *		eventA:'mouseenter',//鼠标事件，加速
  *		eventB:'mouseleave',//鼠标事件，原速
- *		navId:'#targetNav', //导航容器ID，导航DOM:<ul><li>1</li><li>2</li><ul>,导航CSS:.navOn
+ *		navId:'#targetNav', //导航容器ID，导航DOM:ul>li{$},导航CSS:navOn
  *		eventNav:'click' //导航事件
