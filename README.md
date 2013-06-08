@@ -3,11 +3,21 @@ gSlider
 
 > 这是一块基于jquery的slider插件
 
+1. 支持图片滚动
+2. 横向滚动
+3. 纵向滚动
+4. 文字无限滚动
+5. 点击按钮滚动等
+
 
  **CSS**
  *    #target {width:200px;height:50px;overflow:hidden;}
+ 
+
  **Use**
  *  	$('#target').gSlider(options);
+
+
  **options**
  *		distance:200,//一次滚动的距离
  *		duration:20,//缓动效果，单次移动时间，越小速度越快，为0时无缓动效果
