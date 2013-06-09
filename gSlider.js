@@ -1,4 +1,3 @@
-
 (function($){
     var bind = function(object, fun) {
         return function(event) {
@@ -168,7 +167,7 @@
         scrollFunc: function(){
             var self = this,
                 _dir = (self.settings.direction == 'left' || self.settings.direction == 'right') ? 'scrollLeft' : 'scrollTop';
-
+            self.settings.beforeCallback.call(self);
             if(self.settings.istarget){
                 if (self.settings.loop > 0) {
                     self.moveNum += self.settings.scrollAmount;
@@ -257,7 +256,7 @@
                 }
             }
             self.d = self.settings.duration;
-
+            self.settings.afterCallback.call(self);
             //scrollId = setInterval(bind(self, self.scrollFunc), self.settings.scrollDelay);
             if(self.scrollId) clearTimeout(self.scrollId);
             self.scrollId = setTimeout(bind(self, self.scrollFunc), self.settings.scrollDelay);
@@ -271,21 +270,23 @@
         });
     };
     $.fn.gSlider.defaults = {
-        istarget:false,//是否为target
-        isEqual:true,//所有滚动的元素长宽是否相等,true,false
+        istarget: false,//是否为target
+        isEqual: true,//所有滚动的元素长宽是否相等,true,false
         loop: 0,//循环滚动次数，0时无限
-        newAmount:3,//加速滚动的步长
-        eventA:'mousedown',//鼠标事件，加速
-        eventB:'mouseup',//鼠标事件，原速
-        isAuto:true,//是否自动轮换
-        time:5000,//停顿时间，单位为秒
+        newAmount: 3,//加速滚动的步长
+        eventA: 'mousedown',//鼠标事件，加速
+        eventB: 'mouseup',//鼠标事件，原速
+        isAuto: true,//是否自动轮换
+        time: 5000,//停顿时间，单位为秒
         currClass: 'navOn',
-        duration:50,//缓动效果，单次移动时间，越小速度越快，为0时无缓动效果
-        eventGo:'click', //鼠标事件，向前向后走
+        duration: 50,//缓动效果，单次移动时间，越小速度越快，为0时无缓动效果
+        eventGo: 'click', //鼠标事件，向前向后走
         direction: 'left',//滚动方向，'left','right','up','down'
-        scrollAmount:1,//步长
-        scrollDelay:10,//时长
-        eventNav:'click'//导航事件
+        scrollAmount: 1,//步长
+        scrollDelay: 10,//时长
+        eventNav: 'click',//导航事件
+        beforeCallback: function(){},
+        afterCallback: function(){}
     };
 
     $.fn.gSlider.setDefaults = function(settings) {
