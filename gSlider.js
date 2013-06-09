@@ -1,263 +1,292 @@
-
 (function($){
+    var bind = function(object, fun) {
+        return function(event) {
+            return fun.call(object, (event || window.event));
+        }
+    },
+    animate = {
+        easeOutQuad: function(t,b,c,d){
+            return -c *(t/=d)*(t-2) + b;
+        },
+        easeOutQuint: function(t,b,c,d){
+            return c*((t=t/d-1)*t*t*t*t + 1) + b;
+        }
+    };
+    var GSlider = function(target, opts){
+        this.target = target; //滚动元素容器
+        this.settings = opts;
 
-    $.fn.gSlider = function(options){
-        var opts = $.extend({},$.fn.gSlider.defaults, options);
+        this.scrollObj = target.get(0);  //滚动元素容器DOM
+        this.scrollW = target.width();   //滚动元素容器的宽度
+        this.scrollH = target.height();  //滚动元素容器的高度
+        this.el = target.children();     //滚动元素
+        this.cel = this.el.children();   //滚动子元素
+        this.scrollSize = 0;             //滚动元素尺寸
+        //滚动类型，1左右，0上下
+        this.type = (opts.direction == 'left' || opts.direction == 'right') ? 1 : 0;
+        this.scrollId = this.rollId = this.isMove = this.targetId = null;
+        //滚动动画的参数,t:当前时间，b:开始的位置，c:改变的位置，d:持续的时间，e:结束的位置
+        this.t = this.b = this.c = this.d = this.e = 0;
+        //子元素的尺寸与个数
+        this.size = this.len = 0;
+        this.nav = this.navBtn = null;
+        this.arrPos = [];
+        this.viewNum = this.rollNum = this.moveNum = 0;
 
-        return this.each(function(){
-            var $target = $(this);//滚动元素容器
-            var _scrollObj = $target.get(0);//滚动元素容器DOM
-            var scrollW = $target.width();//滚动元素容器的宽度
-            var scrollH = $target.height();//滚动元素容器的高度
-            var $element = $target.children(); //滚动元素
-            var $kids = $element.children();//滚动子元素
-            var scrollSize=0;//滚动元素尺寸
-            var _type = (opts.direction == 'left' || opts.direction == 'right') ? 1:0;//滚动类型，1左右，0上下
-            var scrollId, rollId, isMove, targetId;
-            var t,b,c,d,e; //滚动动画的参数,t:当前时间，b:开始的位置，c:改变的位置，d:持续的时间，e:结束的位置
-            var _size, _len; //子元素的尺寸与个数
-            var $nav,$navBtns;
-            var arrPos = [];
-            var numView = 0; //当前所看子元素
-            var numRoll=0; //轮换的次数
-            var numMoved = 0;//已经移动的距离
-
-            //防止滚动子元素比滚动元素宽而取不到实际滚动子元素宽度
-            $element.css(_type?'width':'height',10000);
+        this.init();
+    };
+    GSlider.prototype = {
+        init: function(){
+            var self = this;
+                navTpl = self.navBuild();
+            self.moveNav(navTpl);
+            self.initPostion();
+            self.moving();
+        },
+        start: function(){
+            var self = this;
+            self.rollId = setInterval(function(){
+                self.rollFunc();
+            }, self.settings.time);
+        },
+        stop: function(){
+            clearInterval(this.rollId);
+        },
+        initPostion: function(){
+            var self = this;
+            //设定初始位置
+            if (self.settings.direction == 'right' || self.settings.direction == 'down') {
+                self.scrollObj[self.type ? 'scrollLeft' : 'scrollTop'] = self.scrollSize;
+            }else{
+                self.scrollObj[self.type ? 'scrollLeft' : 'scrollTop'] = 0;
+            }
+        },
+        navBuild: function(){
+            var self = this;
+            self.el.css(self.type ? 'width' : 'height', 10000);
             //获取滚动元素的尺寸
             var navHtml = '<ul>';
-            if (opts.isEqual) {
-                _size = $kids[_type?'outerWidth':'outerHeight']();
-                _len = $kids.length;
-                scrollSize = _size * _len;
-                for(var i=0;i<_len;i++){
-                    arrPos.push(i*_size);
+            //判断是否等宽
+            if (self.settings.isEqual) {
+                self.size = self.cel[self.type ? 'outerWidth' : 'outerHeight']();
+                self.len = self.cel.length;
+                self.scrollSize = self.size * self.len;
+                for(var i=0; i<self.len; i++){
+                    self.arrPos.push(i*self.size);
                     navHtml += '<li>'+ (i+1) +'</li>';
                 }
             }else{
-                $kids.each(function(i){
-                    arrPos.push(scrollSize);
-                    scrollSize += $(this)[_type?'outerWidth':'outerHeight']();
+                self.cel.each(function(i){
+                    self.arrPos.push(self.scrollSize);
+                    self.scrollSize += $(this)[self.type ? 'outerWidth' : 'outerHeight']();
                     navHtml += '<li>'+ (i+1) +'</li>';
                 });
             }
             navHtml += '</ul>';
-
+            return navHtml;
+        },
+        moveNav: function(navTpl){
+            var self = this;
             //滚动元素总尺寸小于容器尺寸，不滚动
-            if (scrollSize<(_type?scrollW:scrollH)) return;
+            if (self.scrollSize<(self.type ? self.scrollW : self.scrollH)) return;
             //克隆滚动子元素将其插入到滚动元素后，并设定滚动元素宽度
-            $element.append($kids.clone()).css(_type?'width':'height',scrollSize*2);
+            self.el.append(self.cel.clone()).css(self.type ? 'width' : 'height', self.scrollSize*2);
 
             //轮换导航
-            if (opts.navId) {
-                $nav = $(opts.navId).append(navHtml).hover( stop, start );
-                $navBtns = $('li', $nav);
-                $navBtns.each(function(i){
-                    $(this).bind(opts.eventNav,function(){
-                        if(isMove) return;
-                        if(numView==i) return;
-                        rollFunc(arrPos[i]);
-                        $navBtns.eq(numView).removeClass(opts.currClass);
-                        numView = i;
-                        $(this).addClass(opts.currClass);
+            if (self.settings.navId) {
+                self.nav = $(self.settings.navId).append(navTpl).hover( self.stop, self.start );
+                self.navBtn = $('li', self.nav);
+                self.navBtn.each(function(i){
+                    $(this).bind(self.settings.eventNav,function(){
+                        if(self.isMove) return;
+                        if(self.viewNum == i) return;
+                        self.rollFunc(self.arrPos[i]);
+                        self.navBtn.eq(self.viewNum).removeClass(self.settings.currClass);
+                        self.viewNum = i;
+                        $(this).addClass(self.settings.currClass);
                     });
                 });
-                $navBtns.eq(numView).addClass(opts.currClass);
+                self.navBtn.eq(self.viewNum).addClass(self.settings.currClass);
             }
-
-            //设定初始位置
-            if (opts.direction == 'right' || opts.direction == 'down') {
-                _scrollObj[_type?'scrollLeft':'scrollTop'] = scrollSize;
-            }else{
-                _scrollObj[_type?'scrollLeft':'scrollTop'] = 0;
-            }
-
-            if(opts.istarget){
+        },
+        moving: function(){
+            var self = this;
+            if(self.settings.istarget){
                 //滚动开始
-                //targetId = setInterval(scrollFunc, opts.scrollDelay);
-                targetId = setTimeout(scrollFunc, opts.scrollDelay);
+                //targetId = setInterval(scrollFunc, self.settings.scrollDelay);
+                self.targetId = setTimeout(bind(self, self.scrollFunc), self.settings.scrollDelay);
                 //鼠标划过停止滚动
-                $target.hover(
+                self.target.hover(
                     function(){
-                        clearInterval(targetId);
+                        clearInterval(self.targetId);
                     },
                     function(){
-                        //targetId = setInterval(scrollFunc, opts.scrollDelay);
-                        clearInterval(targetId);
-                        targetId = setTimeout(scrollFunc, opts.scrollDelay);
+                        //targetId = setInterval(scrollFunc, self.settings.scrollDelay);
+                        clearInterval(self.targetId);
+                        self.targetId = setTimeout(bind(self, self.scrollFunc), self.settings.scrollDelay);
                     }
                 );
 
                 //控制加速运动
-                if(opts.controlBtn){
-                    $.each(opts.controlBtn, function(i,val){
-                        $(val).bind(opts.eventA,function(){
-                            opts.direction = i;
-                            opts.oldAmount = opts.scrollAmount;
-                            opts.scrollAmount = opts.newAmount;
-                        }).bind(opts.eventB,function(){
-                                opts.scrollAmount = opts.oldAmount;
+                if(self.settings.controlBtn){
+                    $.each(self.settings.controlBtn, function(i,val){
+                        $(val).bind(self.settings.eventA,function(){
+                            self.settings.direction = i;
+                            self.settings.oldAmount = self.settings.scrollAmount;
+                            self.settings.scrollAmount = self.settings.newAmount;
+                        }).bind(self.settings.eventB,function(){
+                                self.settings.scrollAmount = self.settings.oldAmount;
                             });
                     });
                 }
             }else{
-                if(opts.isAuto){
+                if(self.settings.isAuto){
                     //轮换开始
-                    start();
+                    self.start();
 
                     //鼠标划过停止轮换
-                    $target.hover( stop, start );
+                    self.target.hover( self.stop, self.start );
                 }
 
                 //控制前后走
-                if(opts.btnGo){
-                    $.each(opts.btnGo, function(i,val){
-                        $(val).bind(opts.eventGo,function(){
+                if(self.settings.btnGo){
+                    $.each(self.settings.btnGo, function(i,val){
+                        $(val).bind(self.settings.eventGo,function(){
                             //if(isMove == true) return;
-                            opts.direction = i;
-                            rollFunc();
-                            if (opts.isAuto) {
-                                stop();
-                                start();
+                            self.settings.direction = i;
+                            self.rollFunc();
+                            if (self.settings.isAuto) {
+                                self.stop();
+                                self.start();
                             }
                         });
                     });
                 }
             }
-
-            function scrollFunc(){
-                var _dir = (opts.direction == 'left' || opts.direction == 'right') ? 'scrollLeft':'scrollTop';
-
-                if(opts.istarget){
-                    if (opts.loop > 0) {
-                        numMoved+=opts.scrollAmount;
-                        if(numMoved>scrollSize*opts.loop){
-                            _scrollObj[_dir] = 0;
-                            return clearInterval(targetId);
-                        }
+        },
+        scrollFunc: function(){
+            var self = this,
+                _dir = (self.settings.direction == 'left' || self.settings.direction == 'right') ? 'scrollLeft' : 'scrollTop';
+            self.settings.beforeCallback.call(self);
+            if(self.settings.istarget){
+                if (self.settings.loop > 0) {
+                    self.moveNum += self.settings.scrollAmount;
+                    if(self.moveNum > self.scrollSize*self.settings.loop){
+                        self.scrollObj[_dir] = 0;
+                        return clearInterval(self.targetId);
                     }
-                    var newPos = _scrollObj[_dir]+(opts.direction == 'left' || opts.direction == 'up'?1:-1)*opts.scrollAmount;
-                }else{
-                    if(opts.duration){
-                        if(t++<d){
-                            isMove = true;
-                            var newPos = Math.ceil(easeOutQuad(t,b,c,d));
-                            if(t==d){
-                                newPos = e;
-                            }
-                        }else{
-                            newPos = e;
-                            clearInterval(scrollId);
-                            isMove = false;
-                            return;
+                }
+                var newPos = self.scrollObj[_dir] + (self.settings.direction == 'left' || self.settings.direction == 'up' ? 1 : -1) * self.settings.scrollAmount;
+            }else{
+                if(self.settings.duration){
+                    if(self.t++ < self.d){
+                        self.isMove = true;
+                        var newPos = Math.ceil(animate.easeOutQuad(self.t, self.b, self.c, self.d));
+                        if(self.t == self.d){
+                            newPos = self.e;
                         }
                     }else{
-                        var newPos = e;
-                        clearInterval(scrollId);
-                    }
-                }
-
-                if(opts.direction == 'left' || opts.direction == 'up'){
-                    if(newPos>=scrollSize){
-                        newPos-=scrollSize;
+                        newPos = self.e;
+                        clearInterval(self.scrollId);
+                        self.isMove = false;
+                        return;
                     }
                 }else{
-                    if(newPos<=0){
-                        newPos+=scrollSize;
-                    }
+                    var newPos = self.e;
+                    clearInterval(self.scrollId);
                 }
-                _scrollObj[_dir] = newPos;
+            }
 
-                if(opts.istarget){
-                    targetId = setTimeout(scrollFunc, opts.scrollDelay);
-                }else if(t<d){
-                    if(scrollId) clearTimeout(scrollId);
-                    scrollId = setTimeout(scrollFunc, opts.scrollDelay);
+            if(self.settings.direction == 'left' || self.settings.direction == 'up'){
+                if(newPos >= self.scrollSize){
+                    newPos -= self.scrollSize;
+                }
+            }else{
+                if(newPos <= 0){
+                    newPos += self.scrollSize;
+                }
+            }
+            self.scrollObj[_dir] = newPos;
+
+            if(self.settings.istarget){
+                self.targetId = setTimeout(bind(self, self.scrollFunc), self.settings.scrollDelay);
+            }else if(self.t < self.d){
+                if(self.scrollId) clearTimeout(self.scrollId);
+                self.scrollId = setTimeout(bind(self, self.scrollFunc), self.settings.scrollDelay);
+            }else{
+                self.isMove = false;
+            }
+        },
+        rollFunc: function(pPos){
+            var self = this;
+            self.isMove = true;
+            var _dir = (self.settings.direction == 'left' || self.settings.direction == 'right') ? 'scrollLeft' : 'scrollTop',
+                _neg = self.settings.direction == 'left' || self.settings.direction == 'up' ? 1 : -1;
+
+            self.rollNum = self.rollNum + _neg;
+            //得到当前所看元素序号并改变导航CSS
+            if(pPos == undefined && self.settings.navId){
+                self.navBtn.eq(self.viewNum).removeClass('navOn');
+                self.viewNum +=_neg;
+                if(self.viewNum >= self.len){
+                    self.viewNum = 0;
+                }else if(self.viewNum < 0){
+                    self.viewNum = self.len-1;
+                }
+                self.navBtn.eq(self.viewNum).addClass('navOn');
+                self.rollNum = self.viewNum;
+            }
+
+            var _temp = self.rollNum<0 ? self.scrollSize : 0;
+            self.t = 0;
+            self.b = self.scrollObj[_dir];
+            //c=(pPos != undefined)?pPos:_neg*self.settings.distance;
+            self.e = (pPos != undefined) ? pPos : _temp+(self.settings.distance*self.rollNum)%self.scrollSize;
+            if(_neg==1){
+                if(self.e > self.b){
+                    self.c = self.e - self.b;
                 }else{
-                    isMove = false;
+                    self.c = self.e + self.scrollSize - self.b;
                 }
-
-            };
-
-            function rollFunc(pPos){
-                isMove = true;
-                var _dir = (opts.direction == 'left' || opts.direction == 'right') ? 'scrollLeft':'scrollTop';
-                var _neg = opts.direction == 'left' || opts.direction == 'up'?1:-1;
-
-                numRoll = numRoll +_neg;
-                //得到当前所看元素序号并改变导航CSS
-                if(pPos == undefined&&opts.navId){
-                    $navBtns.eq(numView).removeClass('navOn');
-                    numView +=_neg;
-                    if(numView>=_len){
-                        numView = 0;
-                    }else if(numView<0){
-                        numView = _len-1;
-                    }
-                    $navBtns.eq(numView).addClass('navOn');
-                    numRoll = numView;
-                }
-
-                var _temp = numRoll<0?scrollSize:0;
-                t=0;
-                b=_scrollObj[_dir];
-                //c=(pPos != undefined)?pPos:_neg*opts.distance;
-                e=(pPos != undefined)?pPos:_temp+(opts.distance*numRoll)%scrollSize;
-                if(_neg==1){
-                    if(e>b){
-                        c = e-b;
-                    }else{
-                        c = e+scrollSize -b;
-                    }
+            }else{
+                if(self.e > self.b){
+                    self.c = self.e - self.scrollSize - self.b;
                 }else{
-                    if(e>b){
-                        c =e-scrollSize-b;
-                    }else{
-                        c = e-b;
-                    }
+                    self.c = self.e - self.b;
                 }
-                d=opts.duration;
-
-                //scrollId = setInterval(scrollFunc, opts.scrollDelay);
-                if(scrollId) clearTimeout(scrollId);
-                scrollId = setTimeout(scrollFunc, opts.scrollDelay);
             }
+            self.d = self.settings.duration;
+            self.settings.afterCallback.call(self);
+            //scrollId = setInterval(bind(self, self.scrollFunc), self.settings.scrollDelay);
+            if(self.scrollId) clearTimeout(self.scrollId);
+            self.scrollId = setTimeout(bind(self, self.scrollFunc), self.settings.scrollDelay);
+        }
+    };
+    $.fn.gSlider = function(options){
+        var opts = $.extend({},$.fn.gSlider.defaults, options);
 
-            function start(){
-                rollId = setInterval(function(){
-                    rollFunc();
-                }, opts.time);
-            }
-            function stop(){
-                clearInterval(rollId);
-            }
-
-            function easeOutQuad(t,b,c,d){
-                return -c *(t/=d)*(t-2) + b;
-            }
-
-            function easeOutQuint(t,b,c,d){
-                return c*((t=t/d-1)*t*t*t*t + 1) + b;
-            }
-
+        return this.each(function(){
+            new GSlider($(this), opts);
         });
     };
     $.fn.gSlider.defaults = {
-        istarget:false,//是否为target
-        isEqual:true,//所有滚动的元素长宽是否相等,true,false
+        istarget: false,//是否为target
+        isEqual: true,//所有滚动的元素长宽是否相等,true,false
         loop: 0,//循环滚动次数，0时无限
-        newAmount:3,//加速滚动的步长
-        eventA:'mousedown',//鼠标事件，加速
-        eventB:'mouseup',//鼠标事件，原速
-        isAuto:true,//是否自动轮换
-        time:5000,//停顿时间，单位为秒
+        newAmount: 3,//加速滚动的步长
+        eventA: 'mousedown',//鼠标事件，加速
+        eventB: 'mouseup',//鼠标事件，原速
+        isAuto: true,//是否自动轮换
+        time: 5000,//停顿时间，单位为秒
         currClass: 'navOn',
-        duration:50,//缓动效果，单次移动时间，越小速度越快，为0时无缓动效果
-        eventGo:'click', //鼠标事件，向前向后走
+        duration: 50,//缓动效果，单次移动时间，越小速度越快，为0时无缓动效果
+        eventGo: 'click', //鼠标事件，向前向后走
         direction: 'left',//滚动方向，'left','right','up','down'
-        scrollAmount:1,//步长
-        scrollDelay:10,//时长
-        eventNav:'click'//导航事件
+        scrollAmount: 1,//步长
+        scrollDelay: 10,//时长
+        eventNav: 'click',//导航事件
+        beforeCallback: function(){},
+        afterCallback: function(){}
     };
 
     $.fn.gSlider.setDefaults = function(settings) {
