@@ -1,8 +1,9 @@
 /**
  * Plugin name - gOpSlider
  * Version - v1.0
- * Updated - 2013-6-9
+ * Updated - 2013-6-17
  * author - liuqing
+ * up - 支持单图无线滚动
  * example - https://github.com/Johnqing/Sliderjs/tree/master/fadeIn
  */
 ;(function($){
@@ -12,7 +13,7 @@
         
         this.ulNode = target.find('ul:eq(0)');
         this.cel = target.children().children();
-        this.w = this.cel.outerWidth();
+        this.w = target.width();
         this.len = this.cel.length;
         this.timer = null;
         this.index = 0;
@@ -33,24 +34,23 @@
             self.imgLoad();
         },
         styleChange: function(){
-        	var self = this;
-        	self.target.css('position','relative');
-        	if(self.settings.animate){
-        		
-        		self.ulNode.css({
-        			'position': 'absolute',
-        			'width': self.cel.width()*self.cel.length
-				});
+            var self = this;
+            self.target.css({'position': 'relative'});
+            if(self.settings.animate){
+                self.ulNode.css({
+                    'position': 'absolute',
+                    'width': 20000
+                });
                 self.cel.css({'float': 'left'});
-        		return;
-        	}
-            self.cel.css({'position': 'absolute'}).hide().eq(0).show();        	
+                return;
+            }
+            self.cel.css({'position': 'absolute'}).hide().eq(0).show();         
         },
         imgLoad: function(){
-        	var self = this,
-        		el = self.cel.eq(self.index).find('img');
-        	if(!self.settings.isImgload || el.attr('data-name') === "imglazyload_offset"){return;}
-        	el.attr('src',el.attr('data-original')).attr('data-name','imglazyload_offset');
+            var self = this,
+                el = self.cel.eq(self.index).find('img');
+            if(!self.settings.isImgload || el.attr('data-name') === "imglazyload_offset"){return;}
+            el.attr('src',el.attr('data-original')).attr('data-name','imglazyload_offset');
         },
         bindEvnet: function(){
             var self = this;
@@ -61,13 +61,13 @@
             });
             var eventFlag = false;
             self.navBtn.bind(self.settings.eventNav, function(){
-            	if(eventFlag){return;}
-            	eventFlag = true;
+                if(eventFlag){return;}
+                eventFlag = true;
                 var index = self.navBtn.index($(this));
                 setTimeout(function(){
-                	self.index = index;
-                	self.change(index);
-                	eventFlag = false;
+                    self.index = index;
+                    self.change(index);
+                    eventFlag = false;
                 },150);                
             })
         },
@@ -75,7 +75,6 @@
             var self = this;
             self.timer = setInterval(function(){
                 self.index++;
-                
                 self.change(self.index);
             },self.settings.time);
         },
@@ -83,20 +82,25 @@
             var self = this;
             self.index = self.index >= self.len ? 0 : self.index;
             if(self.settings.animate){
-            	if(index >= self.len){
-            		self.cel.eq(0).css({
-            			'position': 'absolute',
-            			'left': index*self.w
-            		});
-            	}
-            	if(index == 0){
-            		self.cel.eq(0).removeAttr('style');
-            	}
-            	self.ulNode.animate({'left': ~(self.w * index)});
+                if(index===self.len){
+                    self.ulNode.css('padding-left',self.w).attr('flg',1);
+                    self.cel.eq(0).css({
+                        'position': 'absolute',
+                        'left': self.w * index
+                    });
+                }  
+                if(index === 1 && self.ulNode.attr('flg')){
+                    self.ulNode.css({
+                        'padding-left': 0,
+                        'left': 0
+                    });
+                    self.cel.eq(0).removeAttr('style').css('float','left');
+                }
+                self.ulNode.animate({'left': -(self.w * index)});
             }else{
-            	self.cel.stop(true, false).animate({opacity:0}, 800).hide().eq(index).show().stop(true, false).animate({opacity:1}, 800);
+                self.cel.stop(true, false).animate({opacity:0}, 800).hide().eq(self.index).show().stop(true, false).animate({opacity:1}, 800);
             }
-            self.navBtn.removeClass(self.settings.currClass).eq(index).addClass(self.settings.currClass);
+            self.navBtn.removeClass(self.settings.currClass).eq(self.index).addClass(self.settings.currClass);
             self.imgLoad();
         },
         navBulid: function(){
@@ -119,7 +123,7 @@
         new Slider($(this), opts);
     };
     $.fn.gOpSlider.defaults = {
-    	animate: true,
+        animate: true,
         currClass: 'navOn',
         eventNav: 'click',
         navId: '#mar3Nav',
