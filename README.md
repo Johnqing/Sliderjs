@@ -18,20 +18,23 @@ gSlider
 
 
 **options**
-*		distance:200,//一次滚动的距离
-*		duration:20,//缓动效果，单次移动时间，越小速度越快，为0时无缓动效果
-*       currClass:'navOn'//当前导航容器样式
-*		time:5000,//停顿时间，单位为毫秒
-*		direction: 'left',//滚动方向，'left','right','up','down'
-*		scrollAmount:1,//步长
-*		scrollDelay:20//时长，单位为毫秒
-*		isEqual:true,//所有滚动的元素长宽是否相等,true,false
-*		loop: 0,//循环滚动次数，0时无限
-*		btnGo:{left:'#goL',right:'#goR'},//控制方向的按钮ID，有四个属性left,right,up,down分别对应四个方向
-*		eventGo:'click',//鼠标事件
-*		controlBtn:{left:'#goL',right:'#goR'},//控制加速滚动的按钮ID，有四个属性left,right,up,down分别对应四个方向
-*		newAmount:4,//加速滚动的步长
-*		eventA:'mouseenter',//鼠标事件，加速
-*		eventB:'mouseleave',//鼠标事件，原速
-*		navId:'#targetNav', //导航容器ID，导航DOM:ul>li{$},导航CSS:navOn
-*		eventNav:'click' //导航事件
+* isAuto: true,                     // 是否自动滚动
+* isImgLoad: false,                // 是否图片后加载
+* dataOriginal: 'data-original',  //图片存储属性名
+* time: 3000,                 // 间隔时间（毫秒）
+* direction: 'forward',           // 向前 -  forward / 向后 - backward
+* duration: 500,                     // 移动速度（毫秒）
+* showNum: 1,                     // 显示个数
+* stepLen: 1,                     // 每次滚动步长
+* type: 'horizontal',             // 水平滚动 - horizontal / 垂直滚动 - vertical
+* btnGo: {left: null, right:null},
+* prevBefore: function() {},      // 上一组移动前回调
+* prevAfter: function() {},       // 上一组移动后回调
+* nextBefore: function() {},      // 下一组移动前回调
+* nextAfter: function() {},       // 下一组移动后回调
+* pauseElement: null,             // 暂停按钮元素
+* pauseBefore: function() {},     // 暂停前回调
+* pauseAfter: function() {},      // 暂停后回调
+* resumeElement: null,            // 继续按钮元素
+* resumeBefore: function() {},    // 继续前回调
+* resumeAfter: function() {}      // 继续后回调
