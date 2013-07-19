@@ -43,7 +43,7 @@
         
         this.pos = this.index = 0;
 
-        this.timer = false;
+        this.timer = null;
         this.init();
     }
     gSlider.prototype = {
