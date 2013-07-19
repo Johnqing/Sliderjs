@@ -37,9 +37,7 @@
         };
         this.len = this.elements.li.length;
         this.settings = options;
-        this.cache = {
-            allowgSlider: true
-        };
+
         
         this.pos = this.index = 0;
 
